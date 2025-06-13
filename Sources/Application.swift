@@ -81,7 +81,7 @@ public final class Application: UIElement {
     }
 
     /// Returns the element at the specified top-down coordinates, or nil if there is none.
-    public override func elementAtPosition(_ x: Float, _ y: Float) throws -> UIElement? {
+    public override func elementAtPosition(_ x: Float, _ y: Float) throws(AXError) -> UIElement? {
         return try super.elementAtPosition(x, y)
     }
 }

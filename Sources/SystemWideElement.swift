@@ -12,7 +12,7 @@ open class SystemWideElement: UIElement {
     }
 
     /// Returns the element at the specified top-down coordinates, or nil if there is none.
-    open override func elementAtPosition(_ x: Float, _ y: Float) throws -> UIElement? {
+    open override func elementAtPosition(_ x: Float, _ y: Float) throws(AXError) -> UIElement? {
         return try super.elementAtPosition(x, y)
     }
 }
