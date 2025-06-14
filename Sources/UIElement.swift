@@ -502,23 +502,29 @@ open class UIElement {
 
     /// Returns a list of actions that can be performed on the element.
     open func actions() throws(AXError) -> [Action] {
-        return try actionsAsStrings().compactMap({ Action(rawValue: $0) })
-    }
-
-    open func actionsAsStrings() throws(AXError) -> [String] {
         var names: CFArray?
         let error = AXUIElementCopyActionNames(element, &names)
 
         if error == .noValue || error == .attributeUnsupported {
             return []
         }
+        guard
+            error != .noValue,
+            error != .attributeUnsupported,
+            let names = names as? [AnyObject],
+            let strings = names as? [String]
+        else { return [] }
 
         guard error == .success else {
             throw error
         }
 
         // We must first convert the CFArray to a native array, then downcast to an array of strings.
-        return names! as [AnyObject] as! [String]
+        return strings.map(Action.init(rawValue:))
+    }
+
+    open func actionsAsStrings() throws(AXError) -> [String] {
+        try actions().map(\.rawValue)
     }
 
     /// Returns the human-readable description of `action`.
