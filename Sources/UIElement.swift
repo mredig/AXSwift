@@ -432,6 +432,7 @@ open class UIElement {
         return (unpackAXValue(value) as! T)
     }
 
+    @available(*, deprecated, renamed: "parameterizedAttribute")
     open func parameterizedAttribute<T, U>(_ attribute: String, param: U) throws(AXError) -> T? {
         try parameterizedAttribute(Attribute(rawValue: attribute), param: param)
     }
@@ -529,6 +530,7 @@ open class UIElement {
         return strings.map(Action.init(rawValue:))
     }
 
+    @available(*, deprecated, renamed: "actions")
     open func actionsAsStrings() throws(AXError) -> [String] {
         try actions().map(\.rawValue)
     }
