@@ -21,8 +21,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private class Sendly<T>: @unchecked Sendable {
+        private let lock = NSLock()
+        private var _value: T
+        var value: T {
+            get { lock.withLock { _value } }
+            set { lock.withLock { _value = newValue } }
+        }
+
+        init(_ value: T) {
+            lock.lock()
+            defer { lock.unlock() }
+            self._value = value
+        }
+    }
+
     func startWatcher(_ app: Application) throws {
-        var updated = false
+        let updated = Sendly(false)
         observer = app.createObserver { (observer: Observer, element: UIElement, event: UIElement.AXNotification, info: [String: AnyObject]?) in
             var elementDesc: String!
             if let role = try? element.role()!, role == .window {
@@ -43,12 +58,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             // Group simultaneous events together with --- lines
-            if !updated {
-                updated = true
+            if !updated.value {
+                updated.value = true
                 // Set this code to run after the current run loop, which is dispatching all notifications.
                 DispatchQueue.main.async {
                     print("---")
-                    updated = false
+                    updated.value = false
                 }
             }
         }
