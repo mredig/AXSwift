@@ -537,22 +537,24 @@ open class UIElement {
 
     /// Returns the human-readable description of `action`.
     open func actionDescription(_ action: Action) throws(AXError) -> String? {
-        return try actionDescription(action.rawValue)
-    }
-
-    open func actionDescription(_ action: String) throws(AXError) -> String? {
         var description: CFString?
-        let error = AXUIElementCopyActionDescription(element, action as CFString, &description)
+        let error = AXUIElementCopyActionDescription(element, action.rawCFStringValue, &description)
 
-        if error == .noValue || error == .actionUnsupported {
-            return nil
-        }
+        guard
+            error != .noValue,
+            error != .attributeUnsupported
+        else { return nil }
 
         guard error == .success else {
             throw error
         }
 
-        return description! as String
+        return description as? String
+    }
+
+    @available(*, deprecated, renamed: "actionDescription")
+    open func actionDescription(_ action: String) throws(AXError) -> String? {
+        try actionDescription(Action(rawValue: action))
     }
 
     /// Performs the action `action` on the element, returning on success.
