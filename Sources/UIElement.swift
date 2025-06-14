@@ -327,26 +327,29 @@ open class UIElement {
     /// - throws: `Error.IllegalArgument` if the attribute isn't an array.
     open func valuesForAttribute<T: AnyObject>
     (_ attribute: Attribute, startAtIndex index: Int, maxValues: Int) throws(AXError) -> [T]? {
-        return try valuesForAttribute(attribute.rawValue, startAtIndex: index, maxValues: maxValues)
-    }
-
-    open func valuesForAttribute<T: AnyObject>
-    (_ attribute: String, startAtIndex index: Int, maxValues: Int) throws(AXError) -> [T]? {
         var values: CFArray?
         let error = AXUIElementCopyAttributeValues(
-            element, attribute as CFString, index, maxValues, &values
+            element, attribute.rawCFStringValue, index, maxValues, &values
         )
 
-        if error == .noValue || error == .attributeUnsupported {
-            return nil
-        }
+        guard
+            error != .noValue,
+            error != .attributeUnsupported,
+            let values
+        else { return nil }
 
         guard error == .success else {
             throw error
         }
 
-        let array = values! as [AnyObject]
+        let array = values as [AnyObject]
         return array.map({ unpackAXValue($0) as! T })
+    }
+
+    @available(*, deprecated, renamed: "valuesForAttribute")
+    open func valuesForAttribute<T: AnyObject>
+    (_ attribute: String, startAtIndex index: Int, maxValues: Int) throws(AXError) -> [T]? {
+        try valuesForAttribute(Attribute(rawValue: attribute), startAtIndex: index, maxValues: maxValues)
     }
 
     /// Returns the number of values an array attribute has.
