@@ -387,8 +387,7 @@ open class UIElement {
         guard
             error != .noValue,
             error != .attributeUnsupported,
-            let names = names as? [AnyObject],
-            let strings = names as? [String]
+            let names = names as? [AnyObject]
         else { return [] }
 
         guard error == .success else {
@@ -397,6 +396,10 @@ open class UIElement {
 
         // We must first convert the CFArray to a native array, then downcast to an array of
         // strings.
+        guard
+            let strings = names as? [String]
+        else { return [] }
+
         return strings.map(Attribute.init(rawValue:))
     }
 
@@ -511,8 +514,7 @@ open class UIElement {
         guard
             error != .noValue,
             error != .attributeUnsupported,
-            let names = names as? [AnyObject],
-            let strings = names as? [String]
+            let names = names as? [AnyObject]
         else { return [] }
 
         guard error == .success else {
@@ -520,6 +522,10 @@ open class UIElement {
         }
 
         // We must first convert the CFArray to a native array, then downcast to an array of strings.
+        guard
+            let strings = names as? [String]
+        else { return [] }
+
         return strings.map(Action.init(rawValue:))
     }
 
