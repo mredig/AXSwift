@@ -40,7 +40,7 @@ import Foundation
 /// - seeAlso: [AXUIElement.h reference](https://developer.apple.com/library/mac/documentation/ApplicationServices/Reference/AXUIElement_header_reference/)
 open class UIElement {
     public let element: AXUIElement
-
+    
     /// Create a UIElement from a raw AXUIElement object.
     ///
     /// The state and role of the AXUIElement is not checked.
@@ -48,10 +48,10 @@ open class UIElement {
         // Since we are dealing with low-level C APIs, it never hurts to double check types.
         assert(CFGetTypeID(nativeElement) == AXUIElementGetTypeID(),
                "nativeElement is not an AXUIElement")
-
+        
         element = nativeElement
     }
-
+    
     /// Checks if the current process is a trusted accessibility client. If false, all APIs will
     /// throw errors.
     ///
@@ -63,45 +63,45 @@ open class UIElement {
         ]
         return AXIsProcessTrustedWithOptions(options as CFDictionary)
     }
-
+    
     /// Timeout in seconds for all UIElement messages. Use this to control how long a method call
     /// can delay execution. The default is `0` which means to use the system default.
     open class var globalMessagingTimeout: Float {
         get { return systemWideElement.messagingTimeout }
         set { systemWideElement.messagingTimeout = newValue }
     }
-
+    
     // MARK: - Attributes
-
+    
     /// Returns the list of all attributes.
     ///
     /// Does not include parameterized attributes.
     open func attributes() throws(AXError) -> [Attribute] {
         var names: CFArray!
         let error = AXUIElementCopyAttributeNames(element, &names)
-
+        
         guard error != .noValue, error != .attributeUnsupported, let names else {
             return []
         }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         // We must first convert the CFArray to a native array, then downcast to an array of
         // strings.
         let strings = names as! [String]
-
+        
         return strings.map(Attribute.init(rawValue:))
     }
-
+    
     // This version is named differently so the caller doesn't have to specify the return type when
     // using the enum version.
     @available(*, deprecated, renamed: "attributes", message: "If you need strings, just call `attributes().map(\\.rawValue)`")
     open func attributesAsStrings() throws(AXError) -> [String] {
         try attributes().map(\.rawValue)
     }
-
+    
     /// Returns whether `attribute` is supported by this element.
     ///
     /// The `attribute` method returns nil for unsupported attributes and empty attributes alike,
@@ -112,48 +112,48 @@ open class UIElement {
         // Ask to copy 0 values, since we are only interested in the return code.
         var value: CFArray?
         let error = AXUIElementCopyAttributeValues(element, attribute.rawCFStringValue, 0, 0, &value)
-
+        
         if error == .attributeUnsupported {
             return false
         }
-
+        
         if error == .noValue {
             return true
         }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return true
     }
-
+    
     @available(*, deprecated, renamed: "attributeIsSupported")
     open func attributeIsSupported(_ attribute: String) throws(AXError) -> Bool {
         try attributeIsSupported(Attribute(rawValue: attribute))
     }
-
+    
     /// Returns whether `attribute` is writeable.
     open func attributeIsSettable(_ attribute: Attribute) throws(AXError) -> Bool {
         var settable: DarwinBoolean = false
         let error = AXUIElementIsAttributeSettable(element, attribute.rawCFStringValue, &settable)
-
+        
         if error == .noValue || error == .attributeUnsupported {
             return false
         }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return settable.boolValue
     }
-
+    
     @available(*, deprecated, renamed: "attributeIsSettable")
     open func attributeIsSettable(_ attribute: String) throws(AXError) -> Bool {
         try attributeIsSettable(Attribute(rawValue: attribute))
     }
-
+    
     /// Returns the value of `attribute`, if it exists.
     ///
     /// - parameter attribute: The name of a (non-parameterized) attribute.
@@ -166,29 +166,29 @@ open class UIElement {
     open func attribute<T>(_ attribute: Attribute) throws(AXError) -> T? {
         var value: AnyObject?
         let error = AXUIElementCopyAttributeValue(element, attribute.rawCFStringValue, &value)
-
+        
         guard
             error != .noValue,
             error != .attributeUnsupported,
             let value
         else { return nil }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         guard let unpackedValue = (unpackAXValue(value) as? T) else {
             throw AXError.illegalArgument
         }
-
+        
         return unpackedValue
     }
-
+    
     @available(*, deprecated, renamed: "attribute")
     open func attribute<T>(_ attribute: String) throws(AXError) -> T? {
         try self.attribute(Attribute(rawValue: attribute))
     }
-
+    
     /// Sets the value of `attribute` to `value`.
     ///
     /// - warning: Unlike read-only methods, this method throws(AXError) if the attribute doesn't exist.
@@ -199,17 +199,17 @@ open class UIElement {
     ///   - `Error.Failure`: A temporary failure occurred.
     open func setAttribute(_ attribute: Attribute, value: Any) throws(AXError) {
         let error = AXUIElementSetAttributeValue(element, attribute.rawCFStringValue, packAXValue(value))
-
+        
         guard error == .success else {
             throw error
         }
     }
-
+    
     @available(*, deprecated, renamed: "setAttribute")
     open func setAttribute(_ attribute: String, value: Any) throws(AXError) {
         try setAttribute(Attribute(rawValue: attribute), value: value)
     }
-
+    
     /// Gets multiple attributes of the element at once.
     ///
     /// - parameter attributes: An array of attribute names. Nonexistent attributes are ignored.
@@ -225,17 +225,17 @@ open class UIElement {
     open func getMultipleAttributes(_ names: Attribute...) throws(AXError) -> [Attribute: Any] {
         return try getMultipleAttributes(names)
     }
-
+    
     open func getMultipleAttributes(_ attributes: [Attribute]) throws(AXError) -> [Attribute: Any] {
         let values = try fetchMultiAttrValues(attributes)
         return try packMultiAttrValues(attributes, values: values)
     }
-
+    
     open func getMultipleAttributes(_ attributes: [String]) throws(AXError) -> [String: Any] {
         let values = try fetchMultiAttrValues(attributes.map(Attribute.init(rawValue:)))
         return try packMultiAttrValues(attributes, values: values)
     }
-
+    
     // Helper: Gets list of values
     fileprivate func fetchMultiAttrValues(_ attributes: [Attribute]) throws(AXError) -> [AnyObject] {
         var valuesCF: CFArray?
@@ -245,19 +245,19 @@ open class UIElement {
             // keep going on errors (particularly NoValue)
             AXCopyMultipleAttributeOptions(rawValue: 0),
             &valuesCF)
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return valuesCF! as [AnyObject]
     }
-
+    
     // Helper: Packs names, values into dictionary
-	fileprivate func packMultiAttrValues<Attr>(
-		_ attributes: [Attr],
-		values: [AnyObject]
-	) throws(AXError) -> [Attr: Any] {
+    fileprivate func packMultiAttrValues<Attr>(
+        _ attributes: [Attr],
+        values: [AnyObject]
+    ) throws(AXError) -> [Attr: Any] {
         var result = [Attr: Any]()
         for (index, attribute) in attributes.enumerated() {
             if try checkMultiAttrValue(values[index]) {
@@ -266,20 +266,20 @@ open class UIElement {
         }
         return result
     }
-
+    
     // Helper: Checks if value is present and not an error (throws on nontrivial errors).
     fileprivate func checkMultiAttrValue(_ value: AnyObject) throws(AXError) -> Bool {
         // Check for null
         if value is NSNull {
             return false
         }
-
+        
         // Check for error
         if CFGetTypeID(value) == AXValueGetTypeID() &&
             AXValueGetType(value as! AXValue).rawValue == kAXValueAXErrorType {
             var error: AXError = AXError.success
             AXValueGetValue(value as! AXValue, AXValueType(rawValue: kAXValueAXErrorType)!, &error)
-
+            
             assert(error != .success)
             if error == .noValue || error == .attributeUnsupported {
                 return false
@@ -287,12 +287,12 @@ open class UIElement {
                 throw error
             }
         }
-
+        
         return true
     }
-
+    
     // MARK: Array attributes
-
+    
     /// Returns all the values of the attribute as an array of the given type.
     ///
     /// - parameter attribute: The name of the array attribute.
@@ -308,12 +308,12 @@ open class UIElement {
         }
         return array.map({ unpackAXValue($0) as! T })
     }
-
+    
     @available(*, deprecated, renamed: "arrayAttribute")
     open func arrayAttribute<T>(_ attribute: String) throws(AXError) -> [T]? {
         try arrayAttribute(Attribute(rawValue: attribute))
     }
-
+    
     /// Returns a subset of values from an array attribute.
     ///
     /// - parameter attribute: The name of the array attribute.
@@ -331,51 +331,51 @@ open class UIElement {
         let error = AXUIElementCopyAttributeValues(
             element, attribute.rawCFStringValue, index, maxValues, &values
         )
-
+        
         guard
             error != .noValue,
             error != .attributeUnsupported,
             let values
         else { return nil }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         let array = values as [AnyObject]
         return array.map({ unpackAXValue($0) as! T })
     }
-
+    
     @available(*, deprecated, renamed: "valuesForAttribute")
     open func valuesForAttribute<T: AnyObject>
     (_ attribute: String, startAtIndex index: Int, maxValues: Int) throws(AXError) -> [T]? {
         try valuesForAttribute(Attribute(rawValue: attribute), startAtIndex: index, maxValues: maxValues)
     }
-
+    
     /// Returns the number of values an array attribute has.
     /// - returns: The number of values, or `nil` if `attribute` isn't an array (or doesn't exist).
     open func valueCountForAttribute(_ attribute: Attribute) throws(AXError) -> Int? {
         var count: Int = 0
         let error = AXUIElementGetAttributeValueCount(element, attribute.rawCFStringValue, &count)
-
+        
         if error == .attributeUnsupported || error == .illegalArgument {
             return nil
         }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return count
     }
-
+    
     @available(*, deprecated, renamed: "valueCountForAttribute")
     open func valueCountForAttribute(_ attribute: String) throws(AXError) -> Int? {
         try valueCountForAttribute(Attribute(rawValue: attribute))
     }
-
+    
     // MARK: Parameterized attributes
-
+    
     /// Returns a list of all parameterized attributes of the element.
     ///
     /// Parameterized attributes are attributes that require parameters to retrieve. For example,
@@ -383,31 +383,31 @@ open class UIElement {
     open func parameterizedAttributes() throws(AXError) -> [Attribute] {
         var names: CFArray?
         let error = AXUIElementCopyParameterizedAttributeNames(element, &names)
-
+        
         guard
             error != .noValue,
             error != .attributeUnsupported,
             let names = names as? [AnyObject]
         else { return [] }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         // We must first convert the CFArray to a native array, then downcast to an array of
         // strings.
         guard
             let strings = names as? [String]
         else { return [] }
-
+        
         return strings.map(Attribute.init(rawValue:))
     }
-
+    
     @available(*, deprecated, renamed: "parameterizedAttributes")
     open func parameterizedAttributesAsStrings() throws(AXError) -> [String] {
         try parameterizedAttributes().map(\.rawValue)
     }
-
+    
     /// Returns the value of the parameterized attribute `attribute` with parameter `param`.
     ///
     /// The expected type of `param` depends on the attribute. See the
@@ -418,27 +418,27 @@ open class UIElement {
         let error = AXUIElementCopyParameterizedAttributeValue(
             element, attribute.rawCFStringValue, param as AnyObject, &value
         )
-
+        
         guard
             error != .noValue,
             error != .attributeUnsupported,
             let value
         else { return nil }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return (unpackAXValue(value) as! T)
     }
-
+    
     @available(*, deprecated, renamed: "parameterizedAttribute")
     open func parameterizedAttribute<T, U>(_ attribute: String, param: U) throws(AXError) -> T? {
         try parameterizedAttribute(Attribute(rawValue: attribute), param: param)
     }
-
+    
     // MARK: Attribute helpers
-
+    
     // Checks if the value is an AXValue and if so, unwraps it.
     // If the value is an AXUIElement, wraps it in UIElement.
     fileprivate func unpackAXValue(_ value: AnyObject) -> Any {
@@ -482,7 +482,7 @@ open class UIElement {
             return value
         }
     }
-
+    
     // Checks if the value is one supported by AXValue and if so, wraps it.
     // If the value is a UIElement, unwraps it to an AXUIElement.
     fileprivate func packAXValue(_ value: Any) -> AnyObject {
@@ -501,14 +501,14 @@ open class UIElement {
             return value as AnyObject // must be an object to pass to AX
         }
     }
-
+    
     // MARK: - Actions
-
+    
     /// Returns a list of actions that can be performed on the element.
     open func actions() throws(AXError) -> [Action] {
         var names: CFArray?
         let error = AXUIElementCopyActionNames(element, &names)
-
+        
         if error == .noValue || error == .attributeUnsupported {
             return []
         }
@@ -517,46 +517,46 @@ open class UIElement {
             error != .attributeUnsupported,
             let names = names as? [AnyObject]
         else { return [] }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         // We must first convert the CFArray to a native array, then downcast to an array of strings.
         guard
             let strings = names as? [String]
         else { return [] }
-
+        
         return strings.map(Action.init(rawValue:))
     }
-
+    
     @available(*, deprecated, renamed: "actions")
     open func actionsAsStrings() throws(AXError) -> [String] {
         try actions().map(\.rawValue)
     }
-
+    
     /// Returns the human-readable description of `action`.
     open func actionDescription(_ action: Action) throws(AXError) -> String? {
         var description: CFString?
         let error = AXUIElementCopyActionDescription(element, action.rawCFStringValue, &description)
-
+        
         guard
             error != .noValue,
             error != .attributeUnsupported
         else { return nil }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return description as? String
     }
-
+    
     @available(*, deprecated, renamed: "actionDescription")
     open func actionDescription(_ action: String) throws(AXError) -> String? {
         try actionDescription(Action(rawValue: action))
     }
-
+    
     /// Performs the action `action` on the element, returning on success.
     ///
     /// - note: If the action times out, it might mean that the application is taking a long time to
@@ -565,33 +565,33 @@ open class UIElement {
     /// - throws: `Error.ActionUnsupported` if the action is not supported.
     open func performAction(_ action: Action) throws(AXError) {
         let error = AXUIElementPerformAction(element, action.rawCFStringValue)
-
+        
         guard error == .success else {
             throw error
         }
     }
-
+    
     @available(*, deprecated, renamed: "performAction")
     open func performAction(_ action: String) throws(AXError) {
         try performAction(Action(rawValue: action))
     }
-
+    
     // MARK: -
-
+    
     /// Returns the process ID of the application that the element is a part of.
     ///
     /// throws(AXError) only if the element is invalid (`Errors.InvalidUIElement`).
     open func pid() throws(AXError) -> pid_t {
         var pid: pid_t = -1
         let error = AXUIElementGetPid(element, &pid)
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return pid
     }
-
+    
     /// The timeout in seconds for all messages sent to this element. Use this to control how long a
     /// method call can delay execution. The default is `0`, which means to use the global timeout.
     ///
@@ -602,7 +602,7 @@ open class UIElement {
         didSet {
             messagingTimeout = max(messagingTimeout, 0)
             let error = AXUIElementSetMessagingTimeout(element, messagingTimeout)
-
+            
             // InvalidUIElement errors are only relevant when actually passing messages, so we can
             // ignore them here.
             guard error == .success || error == .invalidUIElement else {
@@ -610,28 +610,28 @@ open class UIElement {
             }
         }
     }
-
+    
     // Gets the element at the specified coordinates.
     // This can only be called on applications and the system-wide element, so it is internal here.
     func elementAtPosition(_ x: Float, _ y: Float) throws(AXError) -> UIElement? {
         var result: AXUIElement?
         let error = AXUIElementCopyElementAtPosition(element, x, y, &result)
-
+        
         if error == .noValue {
             return nil
         }
-
+        
         guard error == .success else {
             throw error
         }
-
+        
         return result.map(UIElement.init)
     }
-
+    
     func elementAtPosition(_ position: CGPoint) throws(AXError) -> UIElement? {
         try elementAtPosition(Float(position.x), Float(position.y))
     }
-
+    
     // TODO: convenience functions for attributes
     // TODO: get any attribute as a UIElement or [UIElement] (or a subclass)
     // TODO: promoters
@@ -647,7 +647,7 @@ extension UIElement: CustomStringConvertible {
         do {
             let role = try self.role()
             roleString = role?.rawValue ?? "UIElementNoRole"
-
+            
             switch role {
             case .some(.application):
                 description = pid
@@ -663,13 +663,13 @@ extension UIElement: CustomStringConvertible {
         } catch {
             roleString = "UnknownUIElement"
         }
-
+        
         let pidString = (pid == nil) ? "??" : String(pid!)
         return "<\(roleString) \""
-             + "\(description ?? String(describing: element))"
-             + "\" (pid=\(pidString))>"
+        + "\(description ?? String(describing: element))"
+        + "\" (pid=\(pidString))>"
     }
-
+    
     public var inspect: String {
         guard let attributeNames = try? attributes() else {
             return "InvalidUIElement"
@@ -689,10 +689,10 @@ public func ==(lhs: UIElement, rhs: UIElement) -> Bool {
 }
 
 extension UIElement: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		let hashCode = CFHash(self)
-		hasher.combine(hashCode)
-	}
+    public func hash(into hasher: inout Hasher) {
+        let hashCode = CFHash(self)
+        hasher.combine(hashCode)
+    }
 }
 
 // MARK: - Convenience getters
@@ -712,7 +712,7 @@ extension UIElement {
             return nil
         }
     }
-
+    
     /// - seeAlso: [Subroles](https://developer.apple.com/library/mac/documentation/AppKit/Reference/NSAccessibility_Protocol_Reference/index.html#//apple_ref/doc/constant_group/Subroles)
     public func subrole() throws(AXError) -> Role.Subrole? {
         if let str: String = try self.attribute(.subrole) {
