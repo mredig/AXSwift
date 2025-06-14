@@ -109,13 +109,9 @@ open class UIElement {
     /// errors). However, if you'd like to specifically test an attribute is actually supported, you
     /// can use this method.
     open func attributeIsSupported(_ attribute: Attribute) throws(AXError) -> Bool {
-        return try attributeIsSupported(attribute.rawValue)
-    }
-
-    open func attributeIsSupported(_ attribute: String) throws(AXError) -> Bool {
         // Ask to copy 0 values, since we are only interested in the return code.
         var value: CFArray?
-        let error = AXUIElementCopyAttributeValues(element, attribute as CFString, 0, 0, &value)
+        let error = AXUIElementCopyAttributeValues(element, attribute.rawCFStringValue, 0, 0, &value)
 
         if error == .attributeUnsupported {
             return false
@@ -130,6 +126,11 @@ open class UIElement {
         }
 
         return true
+    }
+
+    @available(*, deprecated, renamed: "attributeIsSupported")
+    open func attributeIsSupported(_ attribute: String) throws(AXError) -> Bool {
+        try attributeIsSupported(Attribute(rawValue: attribute))
     }
 
     /// Returns whether `attribute` is writeable.
