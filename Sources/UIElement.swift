@@ -197,7 +197,7 @@ open class UIElement {
     ///   - `Error.AttributeUnsupported`: `attribute` isn't supported.
     ///   - `Error.IllegalArgument`: `value` is an illegal value.
     ///   - `Error.Failure`: A temporary failure occurred.
-    open func setAttribute<T: AXValueCompatibility>(_ attribute: Attribute, value: T) throws(AXError) {
+    open func setAttribute(_ attribute: Attribute, value: Any) throws(AXError) {
         let error = AXUIElementSetAttributeValue(element, attribute.rawCFStringValue, packAXValue(value))
 
         guard error == .success else {
@@ -206,7 +206,7 @@ open class UIElement {
     }
 
     @available(*, deprecated, renamed: "setAttribute")
-    open func setAttribute<T: AXValueCompatibility>(_ attribute: String, value: T) throws(AXError) {
+    open func setAttribute(_ attribute: String, value: Any) throws(AXError) {
         try setAttribute(Attribute(rawValue: attribute), value: value)
     }
 
