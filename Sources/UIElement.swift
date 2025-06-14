@@ -69,7 +69,7 @@ open class UIElement {
     ///                         happens asynchronously and does not affect the return value.
     open class func isProcessTrusted(withPrompt showPrompt: Bool = false) -> Bool {
         let options = [
-            kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: showPrompt as CFBoolean
+            "AXTrustedCheckOptionPrompt": showPrompt as CFBoolean // `kAXTrustedCheckOptionPrompt` causes a concurrency build error, so just using raw string here
         ]
         return AXIsProcessTrustedWithOptions(options as CFDictionary)
     }
