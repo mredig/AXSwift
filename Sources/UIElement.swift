@@ -11,13 +11,23 @@ import Foundation
 /// means that operations are synchronous and can hang until they time out. The default timeout is
 /// 6 seconds, but it can be changed using `setMessagingTimeout` and `setGlobalMessagingTimeout`.
 ///
-/// Every attribute- or action-related function has an enum version and a String version. This is
-/// because certain processes might report attributes or actions not documented in the standard API.
-/// These will be ignored by enum functions (and you can't specify them). Most users will want to
-/// use the enum-based versions, but if you want to be exhaustive or use non-standard attributes and
-/// actions, you can use the String versions.
+/// Every attribute- or action-related function has an RawRepresentable type safe version and a deprecated String
+/// version. There are attributes and actions that might not be included in the lists in this package, and while this
+/// was previously handled by provided a raw String interface, now the RawRepresentable structs can serve both
+/// purposes. Dot syntax will still work (`element.attribute(.windows)`) and you can add additionally
+/// unaccounted for values through extending the `Attribute`, `Action` or whatever type like so:
+/// ```swift
+/// extension Attribute {
+///     static let windows = Attribute(rawValue: "AXWindows")
+/// }
+/// ```
+///
+/// Additionally, unaccounteded for attributes will now be provided in their appropriate RawRepresentable type
+/// when returned from the system.
 ///
 /// ### Error handling
+///
+/// All throwing methods throw typed errors (Specifically `AXError`)
 ///
 /// Unless otherwise specified, during reads, "missing data/attribute" errors are handled by
 /// returning optionals as nil. During writes, missing attribute errors are thrown.
