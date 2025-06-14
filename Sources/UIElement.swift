@@ -164,26 +164,29 @@ open class UIElement {
     /// - warning: This method force-casts the attribute to the desired type, which will abort if
     ///            the cast fails. If you want to check the return type, ask for Any.
     open func attribute<T>(_ attribute: Attribute) throws(AXError) -> T? {
-        return try self.attribute(attribute.rawValue)
-    }
-
-    open func attribute<T>(_ attribute: String) throws(AXError) -> T? {
         var value: AnyObject?
-        let error = AXUIElementCopyAttributeValue(element, attribute as CFString, &value)
+        let error = AXUIElementCopyAttributeValue(element, attribute.rawCFStringValue, &value)
 
-        if error == .noValue || error == .attributeUnsupported {
-            return nil
-        }
+        guard
+            error != .noValue,
+            error != .attributeUnsupported,
+            let value
+        else { return nil }
 
         guard error == .success else {
             throw error
         }
 
-        guard let unpackedValue = (unpackAXValue(value!) as? T) else {
+        guard let unpackedValue = (unpackAXValue(value) as? T) else {
             throw AXError.illegalArgument
         }
-        
+
         return unpackedValue
+    }
+
+    @available(*, deprecated, renamed: "attribute")
+    open func attribute<T>(_ attribute: String) throws(AXError) -> T? {
+        try self.attribute(Attribute(rawValue: attribute))
     }
 
     /// Sets the value of `attribute` to `value`.
