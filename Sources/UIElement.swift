@@ -411,24 +411,26 @@ open class UIElement {
     /// [NSAccessibility Informal Protocol Reference](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Protocols/NSAccessibility_Protocol/)
     /// for more info.
     open func parameterizedAttribute<T, U>(_ attribute: Attribute, param: U) throws(AXError) -> T? {
-        return try parameterizedAttribute(attribute.rawValue, param: param)
-    }
-
-    open func parameterizedAttribute<T, U>(_ attribute: String, param: U) throws(AXError) -> T? {
         var value: AnyObject?
         let error = AXUIElementCopyParameterizedAttributeValue(
-            element, attribute as CFString, param as AnyObject, &value
+            element, attribute.rawCFStringValue, param as AnyObject, &value
         )
 
-        if error == .noValue || error == .attributeUnsupported {
-            return nil
-        }
+        guard
+            error != .noValue,
+            error != .attributeUnsupported,
+            let value
+        else { return nil }
 
         guard error == .success else {
             throw error
         }
 
-        return (unpackAXValue(value!) as! T)
+        return (unpackAXValue(value) as! T)
+    }
+
+    open func parameterizedAttribute<T, U>(_ attribute: String, param: U) throws(AXError) -> T? {
+        try parameterizedAttribute(Attribute(rawValue: attribute), param: param)
     }
 
     // MARK: Attribute helpers
