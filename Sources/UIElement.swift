@@ -677,9 +677,9 @@ extension UIElement {
     }
 
     /// - seeAlso: [Subroles](https://developer.apple.com/library/mac/documentation/AppKit/Reference/NSAccessibility_Protocol_Reference/index.html#//apple_ref/doc/constant_group/Subroles)
-    public func subrole() throws(AXError) -> Subrole? {
+    public func subrole() throws(AXError) -> Role.Subrole? {
         if let str: String = try self.attribute(.subrole) {
-            return Subrole(rawValue: str)
+            return Role.Subrole(rawValue: str)
         } else {
             return nil
         }

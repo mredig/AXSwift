@@ -10,10 +10,10 @@ import Darwin
 public final class Observer {
     public typealias Callback = (_ observer: Observer,
                                  _ element: UIElement,
-                                 _ notification: AXNotification) -> Void
+								 _ notification: UIElement.AXNotification) -> Void
     public typealias CallbackWithInfo = (_ observer: Observer,
                                          _ element: UIElement,
-                                         _ notification: AXNotification,
+										 _ notification: UIElement.AXNotification,
                                          _ info: [String: AnyObject]?) -> Void
 
     let pid: pid_t
@@ -100,7 +100,7 @@ public final class Observer {
     ///         error is not passed on for consistency with `start()` and `stop()`.
     /// - throws: `Error.NotificationUnsupported`: The element does not support notifications (note
     ///           that the system-wide element does not support notifications).
-    public func addNotification(_ notification: AXNotification,
+	public func addNotification(_ notification: UIElement.AXNotification,
                                 forElement element: UIElement) throws {
         let selfPtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         let error = AXObserverAddNotification(
@@ -119,7 +119,7 @@ public final class Observer {
     ///         error is not passed on for consistency with `start()` and `stop()`.
     /// - throws: `Error.NotificationUnsupported`: The element does not support notifications (note
     ///           that the system-wide element does not support notifications).
-    public func removeNotification(_ notification: AXNotification,
+	public func removeNotification(_ notification: UIElement.AXNotification,
                                    forElement element: UIElement) throws {
         let error = AXObserverRemoveNotification(
             axObserver, element.element, notification.rawValue as CFString
@@ -138,10 +138,11 @@ private func internalCallback(_ axObserver: AXObserver,
 
     let observer = Unmanaged<Observer>.fromOpaque(userData).takeUnretainedValue()
     let element = UIElement(axElement)
-    guard let notif = AXNotification(rawValue: notification as String) else {
-        NSLog("Unknown AX notification %s received", notification as String)
-        return
-    }
+	let notif = UIElement.AXNotification(rawValue: notification as String)
+//	guard let notif = UIElement.AXNotification(rawValue: notification as String) else {
+//        NSLog("Unknown AX notification %s received", notification as String)
+//        return
+//    }
     observer.callback!(observer, element, notif)
 }
 
@@ -155,9 +156,10 @@ private func internalInfoCallback(_ axObserver: AXObserver,
     let observer = Unmanaged<Observer>.fromOpaque(userData).takeUnretainedValue()
     let element = UIElement(axElement)
     let info = cfInfo as NSDictionary? as! [String: AnyObject]?
-    guard let notif = AXNotification(rawValue: notification as String) else {
-        NSLog("Unknown AX notification %s received", notification as String)
-        return
-    }
+	let notif = UIElement.AXNotification(rawValue: notification as String)
+//	guard let notif = UIElement.AXNotification(rawValue: notification as String) else {
+//        NSLog("Unknown AX notification %s received", notification as String)
+//        return
+//    }
     observer.callbackWithInfo!(observer, element, notif, info)
 }
