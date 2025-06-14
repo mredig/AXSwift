@@ -4,9 +4,9 @@ import PackageDescription
 
 let package = Package(
     name: "AXSwift",
-	platforms: [
-		.macOS(.v10_15)
-	],
+    platforms: [
+        .macOS(.v10_15)
+    ],
     products: [
         .library(
             name: "AXSwift",
@@ -16,10 +16,12 @@ let package = Package(
         .target(
             name: "AXSwift",
             path: "Sources"),
-        .target(name: "AXSwiftExample",
+        .executableTarget(
+            name: "AXSwiftExample",
             dependencies: ["AXSwift"],
             path: "AXSwiftExample"),
-        .target(name: "AXSwiftObserverExample",
+        .executableTarget(
+            name: "AXSwiftObserverExample",
             dependencies: ["AXSwift"],
             path: "AXSwiftObserverExample"),
     ]
