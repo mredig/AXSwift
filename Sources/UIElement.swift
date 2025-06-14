@@ -95,13 +95,6 @@ open class UIElement {
         return strings.map(Attribute.init(rawValue:))
     }
 
-    // This version is named differently so the caller doesn't have to specify the return type when
-    // using the enum version.
-    @available(*, deprecated, renamed: "attributes", message: "If you need strings, just call `attributes().map(\\.rawValue)`")
-    open func attributesAsStrings() throws(AXError) -> [String] {
-        try attributes().map(\.rawValue)
-    }
-
     /// Returns whether `attribute` is supported by this element.
     ///
     /// The `attribute` method returns nil for unsupported attributes and empty attributes alike,
@@ -128,11 +121,6 @@ open class UIElement {
         return true
     }
 
-    @available(*, deprecated, renamed: "attributeIsSupported")
-    open func attributeIsSupported(_ attribute: String) throws(AXError) -> Bool {
-        try attributeIsSupported(Attribute(rawValue: attribute))
-    }
-
     /// Returns whether `attribute` is writeable.
     open func attributeIsSettable(_ attribute: Attribute) throws(AXError) -> Bool {
         var settable: DarwinBoolean = false
@@ -147,11 +135,6 @@ open class UIElement {
         }
 
         return settable.boolValue
-    }
-
-    @available(*, deprecated, renamed: "attributeIsSettable")
-    open func attributeIsSettable(_ attribute: String) throws(AXError) -> Bool {
-        try attributeIsSettable(Attribute(rawValue: attribute))
     }
 
     /// Returns the value of `attribute`, if it exists.
@@ -184,11 +167,6 @@ open class UIElement {
         return unpackedValue
     }
 
-    @available(*, deprecated, renamed: "attribute")
-    open func attribute<T>(_ attribute: String) throws(AXError) -> T? {
-        try self.attribute(Attribute(rawValue: attribute))
-    }
-
     /// Sets the value of `attribute` to `value`.
     ///
     /// - warning: Unlike read-only methods, this method throws(AXError) if the attribute doesn't exist.
@@ -203,11 +181,6 @@ open class UIElement {
         guard error == .success else {
             throw error
         }
-    }
-
-    @available(*, deprecated, renamed: "setAttribute")
-    open func setAttribute(_ attribute: String, value: Any) throws(AXError) {
-        try setAttribute(Attribute(rawValue: attribute), value: value)
     }
 
     /// Gets multiple attributes of the element at once.
@@ -228,11 +201,6 @@ open class UIElement {
 
     open func getMultipleAttributes(_ attributes: [Attribute]) throws(AXError) -> [Attribute: Any] {
         let values = try fetchMultiAttrValues(attributes)
-        return try packMultiAttrValues(attributes, values: values)
-    }
-
-    open func getMultipleAttributes(_ attributes: [String]) throws(AXError) -> [String: Any] {
-        let values = try fetchMultiAttrValues(attributes.map(Attribute.init(rawValue:)))
         return try packMultiAttrValues(attributes, values: values)
     }
 
@@ -309,11 +277,6 @@ open class UIElement {
         return array.map({ unpackAXValue($0) as! T })
     }
 
-    @available(*, deprecated, renamed: "arrayAttribute")
-    open func arrayAttribute<T>(_ attribute: String) throws(AXError) -> [T]? {
-        try arrayAttribute(Attribute(rawValue: attribute))
-    }
-
     /// Returns a subset of values from an array attribute.
     ///
     /// - parameter attribute: The name of the array attribute.
@@ -346,12 +309,6 @@ open class UIElement {
         return array.map({ unpackAXValue($0) as! T })
     }
 
-    @available(*, deprecated, renamed: "valuesForAttribute")
-    open func valuesForAttribute<T: AnyObject>
-    (_ attribute: String, startAtIndex index: Int, maxValues: Int) throws(AXError) -> [T]? {
-        try valuesForAttribute(Attribute(rawValue: attribute), startAtIndex: index, maxValues: maxValues)
-    }
-
     /// Returns the number of values an array attribute has.
     /// - returns: The number of values, or `nil` if `attribute` isn't an array (or doesn't exist).
     open func valueCountForAttribute(_ attribute: Attribute) throws(AXError) -> Int? {
@@ -369,10 +326,6 @@ open class UIElement {
         return count
     }
 
-    @available(*, deprecated, renamed: "valueCountForAttribute")
-    open func valueCountForAttribute(_ attribute: String) throws(AXError) -> Int? {
-        try valueCountForAttribute(Attribute(rawValue: attribute))
-    }
 
     // MARK: Parameterized attributes
 
@@ -403,11 +356,6 @@ open class UIElement {
         return strings.map(Attribute.init(rawValue:))
     }
 
-    @available(*, deprecated, renamed: "parameterizedAttributes")
-    open func parameterizedAttributesAsStrings() throws(AXError) -> [String] {
-        try parameterizedAttributes().map(\.rawValue)
-    }
-
     /// Returns the value of the parameterized attribute `attribute` with parameter `param`.
     ///
     /// The expected type of `param` depends on the attribute. See the
@@ -432,10 +380,6 @@ open class UIElement {
         return (unpackAXValue(value) as! T)
     }
 
-    @available(*, deprecated, renamed: "parameterizedAttribute")
-    open func parameterizedAttribute<T, U>(_ attribute: String, param: U) throws(AXError) -> T? {
-        try parameterizedAttribute(Attribute(rawValue: attribute), param: param)
-    }
 
     // MARK: Attribute helpers
 
@@ -530,10 +474,6 @@ open class UIElement {
         return strings.map(Action.init(rawValue:))
     }
 
-    @available(*, deprecated, renamed: "actions")
-    open func actionsAsStrings() throws(AXError) -> [String] {
-        try actions().map(\.rawValue)
-    }
 
     /// Returns the human-readable description of `action`.
     open func actionDescription(_ action: Action) throws(AXError) -> String? {
@@ -552,11 +492,6 @@ open class UIElement {
         return description as? String
     }
 
-    @available(*, deprecated, renamed: "actionDescription")
-    open func actionDescription(_ action: String) throws(AXError) -> String? {
-        try actionDescription(Action(rawValue: action))
-    }
-
     /// Performs the action `action` on the element, returning on success.
     ///
     /// - note: If the action times out, it might mean that the application is taking a long time to
@@ -569,11 +504,6 @@ open class UIElement {
         guard error == .success else {
             throw error
         }
-    }
-
-    @available(*, deprecated, renamed: "performAction")
-    open func performAction(_ action: String) throws(AXError) {
-        try performAction(Action(rawValue: action))
     }
 
     // MARK: -
@@ -630,6 +560,82 @@ open class UIElement {
 
     func elementAtPosition(_ position: CGPoint) throws(AXError) -> UIElement? {
         try elementAtPosition(Float(position.x), Float(position.y))
+    }
+
+    // MARK: - Deprecated Strings Methods
+
+    // This version is named differently so the caller doesn't have to specify the return type when
+    // using the enum version.
+    @available(*, deprecated, renamed: "attributes", message: "If you need strings, just call `attributes().map(\\.rawValue)`")
+    open func attributesAsStrings() throws(AXError) -> [String] {
+        try attributes().map(\.rawValue)
+    }
+
+    @available(*, deprecated, renamed: "attributeIsSupported")
+    open func attributeIsSupported(_ attribute: String) throws(AXError) -> Bool {
+        try attributeIsSupported(Attribute(rawValue: attribute))
+    }
+
+    @available(*, deprecated, renamed: "attributeIsSettable")
+    open func attributeIsSettable(_ attribute: String) throws(AXError) -> Bool {
+        try attributeIsSettable(Attribute(rawValue: attribute))
+    }
+
+    @available(*, deprecated, renamed: "attribute")
+    open func attribute<T>(_ attribute: String) throws(AXError) -> T? {
+        try self.attribute(Attribute(rawValue: attribute))
+    }
+
+    @available(*, deprecated, renamed: "setAttribute")
+    open func setAttribute(_ attribute: String, value: Any) throws(AXError) {
+        try setAttribute(Attribute(rawValue: attribute), value: value)
+    }
+
+    @available(*, deprecated, renamed: "getMultipleAttributes")
+    open func getMultipleAttributes(_ attributes: [String]) throws(AXError) -> [String: Any] {
+        let values = try fetchMultiAttrValues(attributes.map(Attribute.init(rawValue:)))
+        return try packMultiAttrValues(attributes, values: values)
+    }
+
+    @available(*, deprecated, renamed: "arrayAttribute")
+    open func arrayAttribute<T>(_ attribute: String) throws(AXError) -> [T]? {
+        try arrayAttribute(Attribute(rawValue: attribute))
+    }
+
+    @available(*, deprecated, renamed: "valuesForAttribute")
+    open func valuesForAttribute<T: AnyObject>
+    (_ attribute: String, startAtIndex index: Int, maxValues: Int) throws(AXError) -> [T]? {
+        try valuesForAttribute(Attribute(rawValue: attribute), startAtIndex: index, maxValues: maxValues)
+    }
+
+    @available(*, deprecated, renamed: "valueCountForAttribute")
+    open func valueCountForAttribute(_ attribute: String) throws(AXError) -> Int? {
+        try valueCountForAttribute(Attribute(rawValue: attribute))
+    }
+
+    @available(*, deprecated, renamed: "parameterizedAttributes")
+    open func parameterizedAttributesAsStrings() throws(AXError) -> [String] {
+        try parameterizedAttributes().map(\.rawValue)
+    }
+
+    @available(*, deprecated, renamed: "parameterizedAttribute")
+    open func parameterizedAttribute<T, U>(_ attribute: String, param: U) throws(AXError) -> T? {
+        try parameterizedAttribute(Attribute(rawValue: attribute), param: param)
+    }
+
+    @available(*, deprecated, renamed: "actions")
+    open func actionsAsStrings() throws(AXError) -> [String] {
+        try actions().map(\.rawValue)
+    }
+
+    @available(*, deprecated, renamed: "actionDescription")
+    open func actionDescription(_ action: String) throws(AXError) -> String? {
+        try actionDescription(Action(rawValue: action))
+    }
+
+    @available(*, deprecated, renamed: "performAction")
+    open func performAction(_ action: String) throws(AXError) {
+        try performAction(Action(rawValue: action))
     }
 
     // TODO: convenience functions for attributes
