@@ -299,10 +299,6 @@ open class UIElement {
     ///
     /// - throws: `Error.IllegalArgument` if the attribute isn't an array.
     open func arrayAttribute<T>(_ attribute: Attribute) throws(AXError) -> [T]? {
-        return try arrayAttribute(attribute.rawValue)
-    }
-
-    open func arrayAttribute<T>(_ attribute: String) throws(AXError) -> [T]? {
         guard let value: Any = try self.attribute(attribute) else {
             return nil
         }
@@ -311,6 +307,11 @@ open class UIElement {
             throw AXError.illegalArgument
         }
         return array.map({ unpackAXValue($0) as! T })
+    }
+
+    @available(*, deprecated, renamed: "arrayAttribute")
+    open func arrayAttribute<T>(_ attribute: String) throws(AXError) -> [T]? {
+        try arrayAttribute(Attribute(rawValue: attribute))
     }
 
     /// Returns a subset of values from an array attribute.
