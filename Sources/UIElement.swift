@@ -135,12 +135,8 @@ open class UIElement {
 
     /// Returns whether `attribute` is writeable.
     open func attributeIsSettable(_ attribute: Attribute) throws(AXError) -> Bool {
-        return try attributeIsSettable(attribute.rawValue)
-    }
-
-    open func attributeIsSettable(_ attribute: String) throws(AXError) -> Bool {
         var settable: DarwinBoolean = false
-        let error = AXUIElementIsAttributeSettable(element, attribute as CFString, &settable)
+        let error = AXUIElementIsAttributeSettable(element, attribute.rawCFStringValue, &settable)
 
         if error == .noValue || error == .attributeUnsupported {
             return false
@@ -151,6 +147,11 @@ open class UIElement {
         }
 
         return settable.boolValue
+    }
+
+    @available(*, deprecated, renamed: "attributeIsSettable")
+    open func attributeIsSettable(_ attribute: String) throws(AXError) -> Bool {
+        try attributeIsSettable(Attribute(rawValue: attribute))
     }
 
     /// Returns the value of `attribute`, if it exists.
