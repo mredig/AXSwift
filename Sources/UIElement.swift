@@ -355,12 +355,8 @@ open class UIElement {
     /// Returns the number of values an array attribute has.
     /// - returns: The number of values, or `nil` if `attribute` isn't an array (or doesn't exist).
     open func valueCountForAttribute(_ attribute: Attribute) throws(AXError) -> Int? {
-        return try valueCountForAttribute(attribute.rawValue)
-    }
-
-    open func valueCountForAttribute(_ attribute: String) throws(AXError) -> Int? {
         var count: Int = 0
-        let error = AXUIElementGetAttributeValueCount(element, attribute as CFString, &count)
+        let error = AXUIElementGetAttributeValueCount(element, attribute.rawCFStringValue, &count)
 
         if error == .attributeUnsupported || error == .illegalArgument {
             return nil
@@ -371,6 +367,11 @@ open class UIElement {
         }
 
         return count
+    }
+
+    @available(*, deprecated, renamed: "valueCountForAttribute")
+    open func valueCountForAttribute(_ attribute: String) throws(AXError) -> Int? {
+        try valueCountForAttribute(Attribute(rawValue: attribute))
     }
 
     // MARK: Parameterized attributes
