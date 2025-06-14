@@ -77,20 +77,10 @@ open class UIElement {
     ///
     /// Does not include parameterized attributes.
     open func attributes() throws(AXError) -> [Attribute] {
-        let attrs = try attributesAsStrings()
-        for attr in attrs where Attribute(rawValue: attr) == nil {
-            print("Unrecognized attribute: \(attr)")
-        }
-        return attrs.compactMap({ Attribute(rawValue: $0) })
-    }
-
-    // This version is named differently so the caller doesn't have to specify the return type when
-    // using the enum version.
-    open func attributesAsStrings() throws(AXError) -> [String] {
-        var names: CFArray?
+        var names: CFArray!
         let error = AXUIElementCopyAttributeNames(element, &names)
 
-        if error == .noValue || error == .attributeUnsupported {
+        guard error != .noValue, error != .attributeUnsupported, let names else {
             return []
         }
 
@@ -100,7 +90,16 @@ open class UIElement {
 
         // We must first convert the CFArray to a native array, then downcast to an array of
         // strings.
-        return names! as [AnyObject] as! [String]
+        let strings = names as! [String]
+
+        return strings.map(Attribute.init(rawValue:))
+    }
+
+    // This version is named differently so the caller doesn't have to specify the return type when
+    // using the enum version.
+    @available(*, deprecated, renamed: "attributes", message: "If you need strings, just call `attributes().map(\\.rawValue)`")
+    open func attributesAsStrings() throws(AXError) -> [String] {
+        try attributes().map(\.rawValue)
     }
 
     /// Returns whether `attribute` is supported by this element.
