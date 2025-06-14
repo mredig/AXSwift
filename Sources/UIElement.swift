@@ -564,15 +564,16 @@ open class UIElement {
     ///         performed.
     /// - throws: `Error.ActionUnsupported` if the action is not supported.
     open func performAction(_ action: Action) throws(AXError) {
-        try performAction(action.rawValue)
-    }
-
-    open func performAction(_ action: String) throws(AXError) {
-        let error = AXUIElementPerformAction(element, action as CFString)
+        let error = AXUIElementPerformAction(element, action.rawCFStringValue)
 
         guard error == .success else {
             throw error
         }
+    }
+
+    @available(*, deprecated, renamed: "performAction")
+    open func performAction(_ action: String) throws(AXError) {
+        try performAction(Action(rawValue: action))
     }
 
     // MARK: -
