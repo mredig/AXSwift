@@ -625,7 +625,11 @@ open class UIElement {
             throw error
         }
 
-        return UIElement(result!)
+        return result.map(UIElement.init)
+    }
+
+    func elementAtPosition(_ position: CGPoint) throws(AXError) -> UIElement? {
+        try elementAtPosition(Float(position.x), Float(position.y))
     }
 
     // TODO: convenience functions for attributes
