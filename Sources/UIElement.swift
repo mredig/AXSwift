@@ -381,16 +381,15 @@ open class UIElement {
     /// Parameterized attributes are attributes that require parameters to retrieve. For example,
     /// the cell contents of a spreadsheet might require the row and column of the cell you want.
     open func parameterizedAttributes() throws(AXError) -> [Attribute] {
-        return try parameterizedAttributesAsStrings().compactMap({ Attribute(rawValue: $0) })
-    }
-
-    open func parameterizedAttributesAsStrings() throws(AXError) -> [String] {
         var names: CFArray?
         let error = AXUIElementCopyParameterizedAttributeNames(element, &names)
 
-        if error == .noValue || error == .attributeUnsupported {
-            return []
-        }
+        guard
+            error != .noValue,
+            error != .attributeUnsupported,
+            let names = names as? [AnyObject],
+            let strings = names as? [String]
+        else { return [] }
 
         guard error == .success else {
             throw error
@@ -398,7 +397,12 @@ open class UIElement {
 
         // We must first convert the CFArray to a native array, then downcast to an array of
         // strings.
-        return names! as [AnyObject] as! [String]
+        return strings.map(Attribute.init(rawValue:))
+    }
+
+    @available(*, deprecated, renamed: "parameterizedAttributes")
+    open func parameterizedAttributesAsStrings() throws(AXError) -> [String] {
+        try parameterizedAttributes().map(\.rawValue)
     }
 
     /// Returns the value of the parameterized attribute `attribute` with parameter `param`.
