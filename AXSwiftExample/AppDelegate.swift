@@ -33,7 +33,7 @@ class ApplicationDelegate: NSObject, NSApplicationDelegate {
         if let title: String = try! app.attribute(.title) {
             NSLog("title: \(title)")
         }
-        NSLog("multi: \(try! app.getMultipleAttributes(["AXRole", "asdf", "AXTitle"]))")
+        NSLog("multi: \(try! app.getMultipleAttributes([.role, .init(rawValue: "asdf"), .title]))")
         NSLog("multi: \(try! app.getMultipleAttributes(.role, .title))")
 
         // Try to set an unsettable attribute
