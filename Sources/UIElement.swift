@@ -227,21 +227,21 @@ open class UIElement {
     }
 
     open func getMultipleAttributes(_ attributes: [Attribute]) throws(AXError) -> [Attribute: Any] {
-        let values = try fetchMultiAttrValues(attributes.map({ $0.rawValue }))
-        return try packMultiAttrValues(attributes, values: values)
-    }
-
-    open func getMultipleAttributes(_ attributes: [String]) throws(AXError) -> [String: Any] {
         let values = try fetchMultiAttrValues(attributes)
         return try packMultiAttrValues(attributes, values: values)
     }
 
+    open func getMultipleAttributes(_ attributes: [String]) throws(AXError) -> [String: Any] {
+        let values = try fetchMultiAttrValues(attributes.map(Attribute.init(rawValue:)))
+        return try packMultiAttrValues(attributes, values: values)
+    }
+
     // Helper: Gets list of values
-    fileprivate func fetchMultiAttrValues(_ attributes: [String]) throws(AXError) -> [AnyObject] {
+    fileprivate func fetchMultiAttrValues(_ attributes: [Attribute]) throws(AXError) -> [AnyObject] {
         var valuesCF: CFArray?
         let error = AXUIElementCopyMultipleAttributeValues(
             element,
-            attributes as CFArray,
+            attributes.map(\.rawCFStringValue) as CFArray,
             // keep going on errors (particularly NoValue)
             AXCopyMultipleAttributeOptions(rawValue: 0),
             &valuesCF)
