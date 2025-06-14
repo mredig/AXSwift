@@ -76,7 +76,7 @@ public final class Application: UIElement {
     /// - returns: An array of `UIElement`s, one for every visible window. Or `nil` if the list
     ///            cannot be retrieved.
     public func windows() throws -> [UIElement]? {
-        let axWindows: [AXUIElement]? = try attribute("AXWindows")
+		let axWindows: [AXUIElement]? = try attribute(.windows)
         return axWindows?.map({ UIElement($0) })
     }
 

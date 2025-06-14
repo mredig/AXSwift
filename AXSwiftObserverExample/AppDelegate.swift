@@ -7,6 +7,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         let app = Application.allForBundleID("com.apple.finder").first!
+        guard UIElement.isProcessTrusted(withPrompt: true) else {
+            NSLog("No accessibility API permission, exiting")
+            NSRunningApplication.current.terminate()
+            return
+        }
 
         do {
             try startWatcher(app)
@@ -18,7 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func startWatcher(_ app: Application) throws {
         var updated = false
-        observer = app.createObserver { (observer: Observer, element: UIElement, event: AXNotification, info: [String: AnyObject]?) in
+        observer = app.createObserver { (observer: Observer, element: UIElement, event: UIElement.AXNotification, info: [String: AnyObject]?) in
             var elementDesc: String!
             if let role = try? element.role()!, role == .window {
                 elementDesc = "\(element) \"\(try! (element.attribute(.title) as String?)!)\""
@@ -55,5 +60,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-
 }
