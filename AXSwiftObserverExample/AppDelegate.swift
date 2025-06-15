@@ -47,15 +47,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             print("\(event) on \(String(describing: elementDesc)); info: \(info ?? [:])")
 
-            // Watch events on new windows
-            if event == .windowCreated {
-                do {
-                    try observer.addNotification(.uiElementDestroyed, forElement: element)
-                    try observer.addNotification(.moved, forElement: element)
-                } catch let error {
-                    NSLog("Error: Could not watch [\(element)]: \(error)")
-                }
-            }
+			do {
+				switch event {
+					// Watch events on new windows
+				case .windowCreated:
+					try observer.addNotification(.uiElementDestroyed, forElement: element)
+					try observer.addNotification(.moved, forElement: element)
+				case .uiElementDestroyed:
+					try observer.removeNotification(.uiElementDestroyed, forElement: element)
+				default: break
+				}
+			} catch let error {
+				NSLog("Error: Could not watch [\(element)]: \(error)")
+			}
 
             // Group simultaneous events together with --- lines
             if !updated.value {
