@@ -25,7 +25,7 @@ public final class Observer {
     Application(forKnownProcessID: self.pid)!
 
     /// Creates and starts an observer on the given `processID`.
-    public init(processID: pid_t, callback: @escaping Callback) throws {
+    public init(processID: pid_t, callback: @escaping Callback) throws(AXError) {
         var axObserver: AXObserver?
         let error = AXObserverCreate(processID, internalCallback, &axObserver)
 
@@ -46,7 +46,7 @@ public final class Observer {
     ///
     /// Use this initializer if you want the extra user info provided with notifications.
     /// - seeAlso: [UserInfo Keys for Posting Accessibility Notifications](https://developer.apple.com/library/mac/documentation/AppKit/Reference/NSAccessibility_Protocol_Reference/index.html#//apple_ref/doc/constant_group/UserInfo_Keys_for_Posting_Accessibility_Notifications)
-    public init(processID: pid_t, callback: @escaping CallbackWithInfo) throws {
+    public init(processID: pid_t, callback: @escaping CallbackWithInfo) throws(AXError) {
         var axObserver: AXObserver?
         let error = AXObserverCreateWithInfoCallback(processID, internalInfoCallback, &axObserver)
 
@@ -101,7 +101,7 @@ public final class Observer {
     /// - throws: `Error.NotificationUnsupported`: The element does not support notifications (note
     ///           that the system-wide element does not support notifications).
     public func addNotification(_ notification: UIElement.AXNotification,
-                                forElement element: UIElement) throws {
+                                forElement element: UIElement) throws(AXError) {
         let selfPtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         let error = AXObserverAddNotification(
             axObserver, element.element, notification.rawValue as CFString, selfPtr
@@ -120,7 +120,7 @@ public final class Observer {
     /// - throws: `Error.NotificationUnsupported`: The element does not support notifications (note
     ///           that the system-wide element does not support notifications).
     public func removeNotification(_ notification: UIElement.AXNotification,
-                                   forElement element: UIElement) throws {
+                                   forElement element: UIElement) throws(AXError) {
         let error = AXObserverRemoveNotification(
             axObserver, element.element, notification.rawValue as CFString
         )
