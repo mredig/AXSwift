@@ -180,6 +180,10 @@ open class UIElement {
         return unpackedValue
     }
 
+	func attributeBool(_ attribute: Attribute) throws(AXError) -> Bool {
+		try self.attribute(attribute) ?? false
+	}
+
     /// Sets the value of `attribute` to `value`.
     ///
     /// - warning: Unlike read-only methods, this method throws(AXError) if the attribute doesn't exist.
