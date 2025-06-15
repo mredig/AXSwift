@@ -162,13 +162,16 @@ open class UIElement {
 
         guard
             error != .noValue,
-            error != .attributeUnsupported,
-            let value
-        else { return nil }
+            error != .attributeUnsupported
+			else { return nil }
 
         guard error == .success else {
             throw error
         }
+
+		guard let value else {
+			return nil
+		}
 
         guard let unpackedValue = (unpackAXValue(value) as? T) else {
             throw AXError.illegalArgument
