@@ -120,8 +120,8 @@ extension Application {
 		}
 
 		public func getParent() throws(AXError) -> Application? {
-			let parent: AXUIElement? = try attribute(.parent)
-			return parent.map(Application.init)
+			let parent: UIElement? = try attribute(.parent)
+			return parent.flatMap { Application($0.element) }
 		}
 
 		public func getSections() throws(AXError) -> [AnyObject] {
