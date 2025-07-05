@@ -147,6 +147,28 @@ open class UIElement {
         return settable.boolValue
     }
 
+    /// Returns the value of `attribute` as `AnyObject`, if it exists.
+    ///
+    /// - parameter attribute: The name of a (non-parameterized) attribute.
+    ///
+    /// - returns: An optional containing the value of `attribute` as an `AnyObject`, or nil.
+    ///            If `attribute` is an array, all values are returned.
+    func rawAttribute(_ attribute: Attribute) throws(AXError) -> AnyObject? {
+        var value: AnyObject?
+        let error = AXUIElementCopyAttributeValue(element, attribute.rawCFStringValue, &value)
+
+        guard
+            error != .noValue,
+            error != .attributeUnsupported
+        else { return nil }
+
+        guard error == .success else {
+            throw error
+        }
+
+        return value
+    }
+
     /// Returns the value of `attribute`, if it exists.
     ///
     /// - parameter attribute: The name of a (non-parameterized) attribute.
@@ -157,21 +179,9 @@ open class UIElement {
     /// - warning: This method force-casts the attribute to the desired type, which will abort if
     ///            the cast fails. If you want to check the return type, ask for Any.
     open func attribute<T>(_ attribute: Attribute) throws(AXError) -> T? {
-        var value: AnyObject?
-        let error = AXUIElementCopyAttributeValue(element, attribute.rawCFStringValue, &value)
-
-        guard
-            error != .noValue,
-            error != .attributeUnsupported
-			else { return nil }
-
-        guard error == .success else {
-            throw error
+        guard let value = try rawAttribute(attribute) else {
+            return nil
         }
-
-		guard let value else {
-			return nil
-		}
 
         guard let unpackedValue = (unpackAXValue(value) as? T) else {
             throw AXError.illegalArgument
@@ -180,9 +190,9 @@ open class UIElement {
         return unpackedValue
     }
 
-	func attributeBool(_ attribute: Attribute) throws(AXError) -> Bool {
-		try self.attribute(attribute) ?? false
-	}
+    func attributeBool(_ attribute: Attribute) throws(AXError) -> Bool {
+        try self.attribute(attribute) ?? false
+    }
 
     /// Sets the value of `attribute` to `value`.
     ///
