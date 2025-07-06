@@ -153,7 +153,7 @@ open class UIElement {
     ///
     /// - returns: An optional containing the value of `attribute` as an `AnyObject`, or nil.
     ///            If `attribute` is an array, all values are returned.
-    func rawAttribute(_ attribute: Attribute) throws(AXError) -> AnyObject? {
+    open func rawAttribute(_ attribute: Attribute) throws(AXError) -> AnyObject? {
         var value: AnyObject?
         let error = AXUIElementCopyAttributeValue(element, attribute.rawCFStringValue, &value)
 
